@@ -908,14 +908,16 @@ def subir_archivo_supabase(bucket, ruta_local, ruta_remota):
     if not SUPABASE_AVAILABLE:
         return None
     
-    conn = get_supabase_connection()
-    if not conn:
-        return None
-    
     try:
+        # Obtener cliente de Supabase directamente
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        client = create_client(url, key)
+        
         with open(ruta_local, 'rb') as f:
-            return conn.storage.from_(bucket).upload(ruta_remota, f)
+            return client.storage.from_(bucket).upload(ruta_remota, f)
     except Exception as e:
+        st.error(f"❌ Error subiendo archivo: {e}")
         return None
 
 def obtener_url_publica_supabase(bucket, ruta_remota):
@@ -923,13 +925,15 @@ def obtener_url_publica_supabase(bucket, ruta_remota):
     if not SUPABASE_AVAILABLE:
         return None
     
-    conn = get_supabase_connection()
-    if not conn:
-        return None
-    
     try:
-        return conn.storage.from_(bucket).get_public_url(ruta_remota)
+        # Obtener cliente de Supabase directamente
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        client = create_client(url, key)
+        
+        return client.storage.from_(bucket).get_public_url(ruta_remota)
     except Exception as e:
+        st.error(f"Error obteniendo URL pública: {e}")
         return None
 
 def es_url_supabase(ruta):
@@ -938,23 +942,24 @@ def es_url_supabase(ruta):
         return False
     return ruta.startswith('http') and '.supabase.co' in ruta
 
-def descargar_desde_supabase(url, destino_local):
+def descargar_desde_supabase(url_publica, destino_local):
     """Descarga un archivo desde Supabase Storage a una ruta local."""
-    if not SUPABASE_AVAILABLE or not es_url_supabase(url):
-        return False
-    
-    conn = get_supabase_connection()
-    if not conn:
+    if not SUPABASE_AVAILABLE or not es_url_supabase(url_publica):
         return False
     
     try:
+        # Obtener cliente de Supabase directamente
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        client = create_client(url, key)
+        
         # Extraer bucket y ruta de la URL
         # Ejemplo: https://ctytennxlftnhxdgcbtj.supabase.co/storage/v1/object/public/fotos/situacion/foto.jpg
-        partes = url.split('/public/')
+        partes = url_publica.split('/public/')
         if len(partes) > 1:
             bucket = partes[1].split('/')[0]
             ruta_remota = '/'.join(partes[1].split('/')[1:])
-            data = conn.storage.from_(bucket).download(ruta_remota)
+            data = client.storage.from_(bucket).download(ruta_remota)
             with open(destino_local, 'wb') as f:
                 f.write(data)
             return True
@@ -2113,41 +2118,44 @@ def guardar_bytes_imagen(file_bytes, prefijo, ext=".jpg"):
     # Intentar subir a Supabase Storage
     if SUPABASE_AVAILABLE:
         try:
-            conn = get_supabase_connection()
-            if conn:
-                # Elegir bucket según el prefijo
-                if "plano" in prefijo.lower():
-                    bucket = "planos"
-                    carpeta = "planos"
-                elif "foto_situacion" in prefijo.lower():
-                    bucket = "fotos"
-                    carpeta = "situacion"
-                elif "foto_detector" in prefijo.lower():
-                    bucket = "fotos"
-                    carpeta = "detectores"
-                elif "logo" in prefijo.lower():
-                    bucket = "imagenes"
-                    carpeta = "logos"
-                else:
-                    bucket = "imagenes"
-                    carpeta = "generales"
-                
-                ruta_remota = f"{carpeta}/{nombre}"
-                
-                # Subir archivo a Supabase
-                with open(ruta_local, "rb") as f:
-                    conn.storage.from_(bucket).upload(ruta_remota, f)
-                
-                # Obtener URL pública
-                url_publica = conn.storage.from_(bucket).get_public_url(ruta_remota)
-                
-                # Eliminar archivo local para no ocupar espacio
-                try:
-                    os.remove(ruta_local)
-                except:
-                    pass
-                
-                return url_publica
+            # Obtener cliente de Supabase directamente (no st.connection)
+            url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+            key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+            client = create_client(url, key)
+            
+            # Elegir bucket según el prefijo
+            if "plano" in prefijo.lower():
+                bucket = "planos"
+                carpeta = "planos"
+            elif "foto_situacion" in prefijo.lower():
+                bucket = "fotos"
+                carpeta = "situacion"
+            elif "foto_detector" in prefijo.lower():
+                bucket = "fotos"
+                carpeta = "detectores"
+            elif "logo" in prefijo.lower():
+                bucket = "imagenes"
+                carpeta = "logos"
+            else:
+                bucket = "imagenes"
+                carpeta = "generales"
+            
+            ruta_remota = f"{carpeta}/{nombre}"
+            
+            # Subir archivo a Supabase usando el cliente directo
+            with open(ruta_local, "rb") as f:
+                client.storage.from_(bucket).upload(ruta_remota, f)
+            
+            # Obtener URL pública
+            url_publica = client.storage.from_(bucket).get_public_url(ruta_remota)
+            
+            # Eliminar archivo local para no ocupar espacio
+            try:
+                os.remove(ruta_local)
+            except:
+                pass
+            
+            return url_publica
                 
         except Exception as e:
             # Mostrar error detallado
