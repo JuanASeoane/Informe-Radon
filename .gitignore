@@ -1,0 +1,149 @@
+# ============================================================
+# STREAMLIT
+# ============================================================
+
+# Secretos de Streamlit (¡IMPORTANTE! No subir)
+.streamlit/secrets.toml
+.streamlit/secrets/
+.streamlit/*.toml
+
+# Archivos de configuración local
+.streamlit/config.toml
+
+# ============================================================
+# PYTHON
+# ============================================================
+
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribuciones / empaquetado
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+__pycache__/
+
+# Entornos virtuales
+venv/
+ENV/
+env/
+.venv
+.venv/
+.env
+
+# ============================================================
+# DATOS DE LA APP (BASE DE DATOS Y ARCHIVOS GENERADOS)
+# ============================================================
+
+# Datos de la app (SQLite y archivos)
+RadonApp_data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+_tmp_*
+*.temp
+
+# Archivos de Excel/PDF/Word generados
+*.xlsx
+*.pdf
+*.docx
+*.zip
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# ============================================================
+# IDE / EDITORES
+# ============================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============================================================
+# SISTEMA OPERATIVO
+# ============================================================
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+*.swp
+*.swo
+*~
+
+# ============================================================
+# LOGS
+# ============================================================
+
+*.log
+logs/
+*.log.*
+
+# ============================================================
+# VARIABLES DE ENTORNO
+# ============================================================
+
+.env
+.env.local
+.env.*.local
+
+# ============================================================
+# OTROS
+# ============================================================
+
+# Archivos de respaldo
+*.bak
+*.backup
+
+# Archivos comprimidos
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+
+# Archivos específicos de tu app
+Asacec           # Archivo de clave de acceso (si existe)
+fondo_app.jpg    # Opcional - si no quieres subir imágenes grandes
+favicon.png      # Opcional
+logo_*.png       # Logos generados
