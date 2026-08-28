@@ -2095,17 +2095,22 @@ def generar_plano_con_punto(plano_path, px, py, destino_path):
 
 
 def guardar_bytes_imagen(file_bytes, prefijo, ext=".jpg"):
-    """Guarda bytes de una imagen (subida o capturada con la cámara) y la sube a Supabase Storage.
+    """Guarda bytes de una imagen y la sube a Supabase Storage.
     
     Devuelve la URL pública si se subió a Supabase, o la ruta local si falló.
     """
+    import time
+    
     data_dir = get_data_dir()
-    nombre = f"{prefijo}_{_ahora_espana().strftime('%Y%m%d_%H%M%S_%f')}{ext}"
+    timestamp = _ahora_espana().strftime('%Y%m%d_%H%M%S_%f')
+    nombre = f"{prefijo}_{timestamp}{ext}"
     ruta_local = os.path.join(data_dir, nombre)
+    
+    # Guardar localmente primero (siempre)
     with open(ruta_local, "wb") as f:
         f.write(file_bytes)
     
-    # Si Supabase está disponible, subir la foto
+    # Intentar subir a Supabase Storage
     if SUPABASE_AVAILABLE:
         try:
             conn = get_supabase_connection()
@@ -2128,13 +2133,26 @@ def guardar_bytes_imagen(file_bytes, prefijo, ext=".jpg"):
                     carpeta = "generales"
                 
                 ruta_remota = f"{carpeta}/{nombre}"
+                
+                # Subir archivo a Supabase
                 with open(ruta_local, "rb") as f:
                     conn.storage.from_(bucket).upload(ruta_remota, f)
-                # Devolver la URL pública en lugar de la ruta local
-                return conn.storage.from_(bucket).get_public_url(ruta_remota)
+                
+                # Obtener URL pública
+                url_publica = conn.storage.from_(bucket).get_public_url(ruta_remota)
+                
+                # Eliminar archivo local para no ocupar espacio
+                try:
+                    os.remove(ruta_local)
+                except:
+                    pass
+                
+                return url_publica
+                
         except Exception as e:
-            # Si falla, devolver la ruta local
-            pass
+            # Mostrar error detallado
+            st.error(f"❌ Error subiendo a Supabase: {e}")
+            st.info("💡 Verifica que los buckets existan y sean públicos")
     
     # Fallback: devolver ruta local
     return ruta_local
